@@ -227,6 +227,8 @@ public class Sender implements Runnable {
      * The main run loop for the sender thread
      */
     public void run() {
+        // 创建KafkaProducer时会启动该线程
+        // 扫描到 RecordAccumulator 中有消息后，会将消息发送到 kafka 集群中
         log.debug("Starting Kafka producer I/O thread.");
 
         // main loop, runs until close is called
@@ -240,6 +242,7 @@ public class Sender implements Runnable {
 
         log.debug("Beginning shutdown of Kafka producer I/O thread, sending remaining records.");
 
+        // 不是强制关闭，将剩余消息发送完
         // okay we stopped accepting requests but there may still be
         // requests in the accumulator or waiting for acknowledgment,
         // wait until these are completed.
@@ -250,6 +253,7 @@ public class Sender implements Runnable {
                 log.error("Uncaught error in kafka producer I/O thread: ", e);
             }
         }
+        // 强制关闭
         if (forceClose) {
             // We need to fail all the incomplete batches and wake up the threads waiting on
             // the futures.
@@ -307,7 +311,9 @@ public class Sender implements Runnable {
             }
         }
 
+        // 这里只是数据准备
         long pollTimeout = sendProducerData(now);
+        // 真正通过网络发送数据
         client.poll(pollTimeout, now);
     }
 
@@ -388,6 +394,7 @@ public class Sender implements Runnable {
             // otherwise the select time will be the time difference between now and the metadata expiry time;
             pollTimeout = 0;
         }
+        // 发送
         sendProduceRequests(batches, now);
         return pollTimeout;
     }
@@ -788,6 +795,7 @@ public class Sender implements Runnable {
         };
 
         String nodeId = Integer.toString(destination);
+        // 发送
         ClientRequest clientRequest = client.newClientRequest(nodeId, requestBuilder, now, acks != 0,
                 requestTimeoutMs, callback);
         client.send(clientRequest, now);

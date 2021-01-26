@@ -381,6 +381,7 @@ public class Selector implements Selectable, AutoCloseable {
             this.failedSends.add(connectionId);
         } else {
             try {
+                // 只是设置发送数据
                 channel.setSend(send);
             } catch (Exception e) {
                 // update the state for consistency, the channel will be discarded after `close`

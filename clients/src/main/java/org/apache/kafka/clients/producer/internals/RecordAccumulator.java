@@ -78,6 +78,7 @@ public final class RecordAccumulator {
     private final BufferPool free;
     private final Time time;
     private final ApiVersions apiVersions;
+    /** 消息暂存地，按topic-partition存放 */
     private final ConcurrentMap<TopicPartition, Deque<ProducerBatch>> batches;
     private final IncompleteBatches incomplete;
     // The following variables are only accessed by the sender thread, so we don't need to protect them.
@@ -207,6 +208,7 @@ public final class RecordAccumulator {
             byte maxUsableMagic = apiVersions.maxUsableProduceMagic();
             int size = Math.max(this.batchSize, AbstractRecords.estimateSizeInBytesUpperBound(maxUsableMagic, compression, key, value, headers));
             log.trace("Allocating a new {} byte message buffer for topic {} partition {}", size, tp.topic(), tp.partition());
+            // 分配内存
             buffer = free.allocate(size, maxTimeToBlock);
             synchronized (dq) {
                 // Need to check if producer is closed again after grabbing the dequeue lock.
@@ -223,6 +225,7 @@ public final class RecordAccumulator {
                 ProducerBatch batch = new ProducerBatch(tp, recordsBuilder, time.milliseconds());
                 FutureRecordMetadata future = Utils.notNull(batch.tryAppend(timestamp, key, value, headers, callback, time.milliseconds()));
 
+                // 加入队列
                 dq.addLast(batch);
                 incomplete.add(batch);
 

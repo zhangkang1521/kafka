@@ -55,6 +55,7 @@ public class DefaultPartitioner implements Partitioner {
         List<PartitionInfo> partitions = cluster.partitionsForTopic(topic);
         int numPartitions = partitions.size();
         if (keyBytes == null) {
+            // 没有设置key，轮询获取分区
             int nextValue = nextValue(topic);
             List<PartitionInfo> availablePartitions = cluster.availablePartitionsForTopic(topic);
             if (availablePartitions.size() > 0) {
@@ -65,6 +66,7 @@ public class DefaultPartitioner implements Partitioner {
                 return Utils.toPositive(nextValue) % numPartitions;
             }
         } else {
+            // 根据key进行hash，然后取余，保证同样的key被分配到同一分区
             // hash the keyBytes to choose a partition
             return Utils.toPositive(Utils.murmur2(keyBytes)) % numPartitions;
         }

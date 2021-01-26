@@ -241,6 +241,7 @@ public class ProducerConfig extends AbstractConfig {
             "Note that, by default, transactions require a cluster of at least three brokers which is the recommended setting for production; for development you can change this, by adjusting broker setting <code>transaction.state.log.replication.factor</code>.";
 
     static {
+        // 生产者默认配置
         CONFIG = new ConfigDef().define(BOOTSTRAP_SERVERS_CONFIG, Type.LIST, Collections.emptyList(), new ConfigDef.NonNullValidator(), Importance.HIGH, CommonClientConfigs.BOOTSTRAP_SERVERS_DOC)
                                 .define(CLIENT_DNS_LOOKUP_CONFIG,
                                         Type.STRING,
