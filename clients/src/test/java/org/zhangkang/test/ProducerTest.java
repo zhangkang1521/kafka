@@ -1,6 +1,7 @@
 package org.zhangkang.test;
 
 import org.apache.kafka.clients.producer.*;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -10,7 +11,9 @@ import java.util.Properties;
 
 public class ProducerTest {
 
-	Producer<String, String> kafkaProducer;
+
+
+	KafkaProducer<String, String> kafkaProducer;
 
 	private static Logger logger = LoggerFactory.getLogger(ProducerTest.class);
 
@@ -24,6 +27,8 @@ public class ProducerTest {
 		props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringSerializer");
 		// 0：无需确认 1：leader确认收到 all:所有节点确认收到 默认1,默认值在ProducerConfig静态代码块中
 //		props.put(ProducerConfig.ACKS_CONFIG, "1");
+		// 自定义分区策略
+		props.put(ProducerConfig.PARTITIONER_CLASS_CONFIG, "org.zhangkang.test.core.DemoPartitioner");
 		kafkaProducer = new KafkaProducer<>(props);
 	}
 
@@ -37,6 +42,24 @@ public class ProducerTest {
 				logger.error("发送失败", exception);
 			}
 		});
+
+	}
+
+	@Test
+	public void partition() {
+		for (int i = 0; i < 10; i++) {
+			kafkaProducer.send(new ProducerRecord<>("test-topic", "XX", "hello,world"), (RecordMetadata metadata, Exception exception) -> {
+				if (exception == null) {
+					logger.info("发送成功, {}", metadata);
+				} else {
+					logger.error("发送失败", exception);
+				}
+			});
+		}
+	}
+
+	@After
+	public void after() {
 		kafkaProducer.close();
 	}
 
