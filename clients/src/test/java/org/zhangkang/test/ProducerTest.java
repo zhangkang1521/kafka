@@ -28,7 +28,9 @@ public class ProducerTest {
 		// 0：无需确认 1：leader确认收到 all:所有节点确认收到 默认1,默认值在ProducerConfig静态代码块中
 //		props.put(ProducerConfig.ACKS_CONFIG, "1");
 		// 自定义分区策略
-		props.put(ProducerConfig.PARTITIONER_CLASS_CONFIG, "org.zhangkang.test.core.DemoPartitioner");
+//		props.put(ProducerConfig.PARTITIONER_CLASS_CONFIG, "org.zhangkang.test.core.DemoPartitioner");
+
+		props.put(ProducerConfig.INTERCEPTOR_CLASSES_CONFIG, "org.zhangkang.test.core.AppNameProducerInterceptor,org.zhangkang.test.core.CounterProducerInterceptor");
 		kafkaProducer = new KafkaProducer<>(props);
 	}
 
@@ -47,8 +49,9 @@ public class ProducerTest {
 
 	@Test
 	public void partition() {
+		// kafka-run-class.bat  kafka.tools.GetOffsetShell --broker-list localhost:9092 --topic test-topic
 		for (int i = 0; i < 10; i++) {
-			kafkaProducer.send(new ProducerRecord<>("test-topic", "XX", "hello,world"), (RecordMetadata metadata, Exception exception) -> {
+			kafkaProducer.send(new ProducerRecord<>("test-topic", "audit", "hello,world"), (RecordMetadata metadata, Exception exception) -> {
 				if (exception == null) {
 					logger.info("发送成功, {}", metadata);
 				} else {

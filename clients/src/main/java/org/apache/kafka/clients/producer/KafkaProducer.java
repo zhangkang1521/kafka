@@ -840,6 +840,7 @@ public class KafkaProducer<K, V> implements Producer<K, V> {
     @Override
     public Future<RecordMetadata> send(ProducerRecord<K, V> record, Callback callback) {
         // intercept the record, which can be potentially modified; this method does not throw exceptions
+        // 拦截器发送前拦截
         ProducerRecord<K, V> interceptedRecord = this.interceptors.onSend(record);
         return doSend(interceptedRecord, callback);
     }
@@ -1307,7 +1308,9 @@ public class KafkaProducer<K, V> implements Producer<K, V> {
 
         public void onCompletion(RecordMetadata metadata, Exception exception) {
             metadata = metadata != null ? metadata : new RecordMetadata(tp, -1, -1, RecordBatch.NO_TIMESTAMP, Long.valueOf(-1L), -1, -1);
+            // 拦截器发送后回调
             this.interceptors.onAcknowledgement(metadata, exception);
+            // send回调函数回调
             if (this.userCallback != null)
                 this.userCallback.onCompletion(metadata, exception);
         }
