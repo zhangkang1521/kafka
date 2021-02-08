@@ -25,8 +25,9 @@ public class ConsumerTest {
 		props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
 		props.put(ConsumerConfig.GROUP_ID_CONFIG, "group-1"); // 一个消息只会通知组内的1个消费者
 		props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringDeserializer");
-		props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringDeserializer");
-//		props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "false"); // 默认自动提交
+//		props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringDeserializer");
+		props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, "org.zhangkang.test.core.UserDeserializer");
+		//		props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "false"); // 默认自动提交
 		consumer = new KafkaConsumer<>(props);
 	}
 
@@ -34,8 +35,8 @@ public class ConsumerTest {
 	public void receive() {
 		consumer.subscribe(Arrays.asList("test", "demo"));
 		while(true) {
-			ConsumerRecords<String, String> records = consumer.poll(1000);
-			for (ConsumerRecord<String, String> record : records) {
+			ConsumerRecords<String, User> records = consumer.poll(1000);
+			for (ConsumerRecord<String, User> record : records) {
 				logger.info("收到消息：{}", record);
 			}
 		}

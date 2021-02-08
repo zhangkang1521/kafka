@@ -13,7 +13,7 @@ public class ProducerTest {
 
 
 
-	KafkaProducer<String, String> kafkaProducer;
+	KafkaProducer<String, Object> kafkaProducer;
 
 	private static Logger logger = LoggerFactory.getLogger(ProducerTest.class);
 
@@ -24,13 +24,14 @@ public class ProducerTest {
 		// key序列化（必须）
 		props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringSerializer");
 		// value序列化（必须）
-		props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringSerializer");
+//		props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringSerializer");
+		props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, "org.zhangkang.test.core.ObjectSerializer");
 		// 0：无需确认 1：leader确认收到 all:所有节点确认收到 默认1,默认值在ProducerConfig静态代码块中
 //		props.put(ProducerConfig.ACKS_CONFIG, "1");
 		// 自定义分区策略
 //		props.put(ProducerConfig.PARTITIONER_CLASS_CONFIG, "org.zhangkang.test.core.DemoPartitioner");
-
-		props.put(ProducerConfig.INTERCEPTOR_CLASSES_CONFIG, "org.zhangkang.test.core.AppNameProducerInterceptor,org.zhangkang.test.core.CounterProducerInterceptor");
+		// 拦截器
+		// props.put(ProducerConfig.INTERCEPTOR_CLASSES_CONFIG, "org.zhangkang.test.core.AppNameProducerInterceptor,org.zhangkang.test.core.CounterProducerInterceptor");
 		kafkaProducer = new KafkaProducer<>(props);
 	}
 
@@ -38,6 +39,20 @@ public class ProducerTest {
 	public void testSend() {
 		// 往 RecordAccumulator 放，单独的线程 Sender 读取并发送
 		kafkaProducer.send(new ProducerRecord<>("test", "hello,world"), (RecordMetadata metadata, Exception exception) -> {
+			if (exception == null) {
+				logger.info("发送成功, {}", metadata);
+			} else {
+				logger.error("发送失败", exception);
+			}
+		});
+	}
+
+	@Test
+	public void testSerialize() {
+		User user = new User();
+		user.setId(100);
+		user.setUsername("zk");
+		kafkaProducer.send(new ProducerRecord<>("user-topic", user), (RecordMetadata metadata, Exception exception) -> {
 			if (exception == null) {
 				logger.info("发送成功, {}", metadata);
 			} else {
