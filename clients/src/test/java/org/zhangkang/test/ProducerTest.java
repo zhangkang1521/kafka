@@ -24,8 +24,9 @@ public class ProducerTest {
 		// key序列化（必须）
 		props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringSerializer");
 		// value序列化（必须）
-//		props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringSerializer");
-		props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, "org.zhangkang.test.core.ObjectSerializer");
+		props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringSerializer");
+		// 自定义序列化
+//		props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, "org.zhangkang.test.core.UserSerializer");
 		// 0：无需确认 1：leader确认收到 all:所有节点确认收到 默认1,默认值在ProducerConfig静态代码块中
 //		props.put(ProducerConfig.ACKS_CONFIG, "1");
 		// 自定义分区策略
