@@ -1,16 +1,16 @@
 package org.zhangkang.test;
 
-import org.apache.kafka.clients.consumer.ConsumerConfig;
-import org.apache.kafka.clients.consumer.ConsumerRecord;
-import org.apache.kafka.clients.consumer.ConsumerRecords;
-import org.apache.kafka.clients.consumer.KafkaConsumer;
+import org.apache.kafka.clients.consumer.*;
 import org.apache.kafka.clients.producer.ProducerConfig;
+import org.apache.kafka.common.TopicPartition;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Properties;
 
 public class ConsumerTest {
@@ -28,7 +28,8 @@ public class ConsumerTest {
 		props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringDeserializer");
 		// 自定义序列化
 //		props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, "org.zhangkang.test.core.UserDeserializer");
-		//		props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "false"); // 默认自动提交
+		// 默认自动提交
+		props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "false");
 		// 没有偏移量从哪里开始读取，有偏移量均从已有记录的位置开始读取；默认：latest，
 		// earliest:从头开始消费
 		// latest: 消费新产生的该分区下的数据
@@ -44,6 +45,22 @@ public class ConsumerTest {
 			ConsumerRecords<String, String> records = consumer.poll(1000);
 			for (ConsumerRecord<String, String> record : records) {
 				logger.info("收到消息：{}", record);
+			}
+		}
+	}
+
+	@Test
+	public void manualCommitOffset() {
+		consumer.subscribe(Arrays.asList("test", "demo"));
+		while(true) {
+			ConsumerRecords<String, String> records = consumer.poll(1000);
+			for (ConsumerRecord<String, String> record : records) {
+				logger.info("收到消息：{}", record);
+				TopicPartition topicPartition = new TopicPartition("test", record.partition());
+				// 手动提交
+				// consumer.commitSync();
+				// 指定topicPartition提交
+				consumer.commitSync(Collections.singletonMap(topicPartition, new OffsetAndMetadata(record.offset() + 1)));
 			}
 		}
 	}
