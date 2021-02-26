@@ -8,10 +8,7 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Properties;
+import java.util.*;
 
 public class ConsumerTest {
 
@@ -29,7 +26,7 @@ public class ConsumerTest {
 		// 自定义序列化
 //		props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, "org.zhangkang.test.core.UserDeserializer");
 		// 默认自动提交
-		props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "false");
+		// props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "false");
 		// 没有偏移量从哪里开始读取，有偏移量均从已有记录的位置开始读取；默认：latest，
 		// earliest:从头开始消费
 		// latest: 消费新产生的该分区下的数据
@@ -40,7 +37,7 @@ public class ConsumerTest {
 
 	@Test
 	public void receive() {
-		consumer.subscribe(Arrays.asList("test", "demo"));
+		consumer.subscribe(Arrays.asList("test"));
 		while(true) {
 			ConsumerRecords<String, String> records = consumer.poll(1000);
 			for (ConsumerRecord<String, String> record : records) {
@@ -51,16 +48,22 @@ public class ConsumerTest {
 
 	@Test
 	public void manualCommitOffset() {
-		consumer.subscribe(Arrays.asList("test", "demo"));
+		consumer.subscribe(Arrays.asList("topic-a", "topic-b"));
 		while(true) {
 			ConsumerRecords<String, String> records = consumer.poll(1000);
-			for (ConsumerRecord<String, String> record : records) {
-				logger.info("收到消息：{}", record);
-				TopicPartition topicPartition = new TopicPartition("test", record.partition());
+			for (TopicPartition topicPartition : records.partitions()) {
+				// 该分区下的消息
+				List<ConsumerRecord<String, String>> subRecords = records.records(topicPartition);
+				for (ConsumerRecord<String, String> record : subRecords) {
+					logger.info("收到消息：{}", record);
+				}
 				// 手动提交
 				// consumer.commitSync();
 				// 指定topicPartition提交
-				consumer.commitSync(Collections.singletonMap(topicPartition, new OffsetAndMetadata(record.offset() + 1)));
+				ConsumerRecord<String, String> lastRecord = subRecords.get(subRecords.size() - 1);
+				long lastOffset = lastRecord.offset() + 1;
+				consumer.commitSync(Collections.singletonMap(topicPartition, new OffsetAndMetadata(lastOffset)));
+				logger.info("手动提交：topicPartion:{}, offset:{}", topicPartition, lastOffset);
 			}
 		}
 	}
