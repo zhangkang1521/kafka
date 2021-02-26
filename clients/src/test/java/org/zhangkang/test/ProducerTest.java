@@ -39,8 +39,8 @@ public class ProducerTest {
 	@Test
 	public void testSend() {
 		// 往 RecordAccumulator 放，单独的线程 Sender 读取并发送
-		for (int i = 0; i < 1; i++) {
-			kafkaProducer.send(new ProducerRecord<>("topic-c", "hello,world"), (RecordMetadata metadata, Exception exception) -> {
+		for (int i = 0; i < 10; i++) {
+			kafkaProducer.send(new ProducerRecord<>("test", "hello,world"), (RecordMetadata metadata, Exception exception) -> {
 				if (exception == null) {
 					logger.info("发送成功, {}", metadata);
 				} else {
