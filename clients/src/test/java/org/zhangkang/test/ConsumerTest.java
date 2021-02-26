@@ -8,6 +8,7 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.*;
 import java.util.*;
 
 public class ConsumerTest {
@@ -26,7 +27,7 @@ public class ConsumerTest {
 		// 自定义序列化
 //		props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, "org.zhangkang.test.core.UserDeserializer");
 		// 默认自动提交
-		// props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "false");
+		props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "false");
 		// 没有偏移量从哪里开始读取，有偏移量均从已有记录的位置开始读取；默认：latest，
 		// earliest:从头开始消费
 		// latest: 消费新产生的该分区下的数据
@@ -64,6 +65,72 @@ public class ConsumerTest {
 				long lastOffset = lastRecord.offset() + 1;
 				consumer.commitSync(Collections.singletonMap(topicPartition, new OffsetAndMetadata(lastOffset)));
 				logger.info("手动提交：topicPartion:{}, offset:{}", topicPartition, lastOffset);
+			}
+		}
+	}
+
+	@Test
+	public void rebalanceListener() {
+
+		consumer.subscribe(Arrays.asList("topic-c"), new ConsumerRebalanceListener() {
+			@Override
+			public void onPartitionsRevoked(Collection<TopicPartition> partitions) {
+				for (TopicPartition topicPartition : partitions) {
+					saveOffset(topicPartition, consumer.position(topicPartition));
+				}
+			}
+
+			@Override
+			public void onPartitionsAssigned(Collection<TopicPartition> partitions) {
+				for (TopicPartition topicPartition : partitions) {
+					consumer.seek(topicPartition, readOffset(topicPartition));
+				}
+			}
+
+			private void saveOffset(TopicPartition topicPartition, long position) {
+				logger.info("保存位移，topicPartion:{}, position:{}", topicPartition, position);
+				Map<TopicPartition, Long> offsetMap = readFromFile();
+				offsetMap.put(topicPartition, position);
+				writeToFile(offsetMap);
+			}
+
+			private long readOffset(TopicPartition topicPartition) {
+				Map<TopicPartition, Long> offsetMap = readFromFile();
+				Long offset = offsetMap.get(topicPartition);
+				logger.info("读取位移，topicPartion:{}, position:{}", topicPartition, offset);
+				return offset == null ? 0 : offset;
+			}
+
+			private Map<TopicPartition, Long> readFromFile() {
+				File file = new File("E:/offset.txt");
+				if (file.exists()) {
+					try {
+						ObjectInputStream in = new ObjectInputStream(new FileInputStream(file));
+						Map<TopicPartition, Long> offsetMap = (Map) in.readObject();
+						in.close();
+						return offsetMap;
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+				}
+				return new HashMap<>();
+			}
+
+			private void writeToFile(Map offsetMap) {
+				try {
+					ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream("E:/offset.txt"));
+					out.writeObject(offsetMap);
+					out.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		});
+
+		while(true) {
+			ConsumerRecords<String, String> records = consumer.poll(1000);
+			for (ConsumerRecord<String, String> record : records) {
+				logger.info("收到消息：{}", record);
 			}
 		}
 	}
