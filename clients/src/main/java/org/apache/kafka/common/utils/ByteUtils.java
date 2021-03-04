@@ -231,6 +231,7 @@ public final class ByteUtils {
      * @param out The output to write to
      */
     public static void writeVarint(int value, DataOutput out) throws IOException {
+        // 变长int，小数字节省内存
         int v = (value << 1) ^ (value >> 31);
         while ((v & 0xffffff80) != 0L) {
             out.writeByte((v & 0x7f) | 0x80);

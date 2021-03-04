@@ -143,7 +143,8 @@ class LogSegment private[log] (val log: FileRecords,
         offsetOfMaxTimestamp = shallowOffsetOfMaxTimestamp
       }
       // append an entry to the index (if needed)
-      if (bytesSinceLastIndexEntry > indexIntervalBytes) {
+      if (bytesSinceLastIndexEntry > indexIntervalBytes) {  // 4096 = 4kb
+        // largestOffset是批量消息的最后一条，physicalPosition是批量消息的起始位置
         offsetIndex.append(largestOffset, physicalPosition)
         timeIndex.maybeAppend(maxTimestampSoFar, offsetOfMaxTimestamp)
         bytesSinceLastIndexEntry = 0

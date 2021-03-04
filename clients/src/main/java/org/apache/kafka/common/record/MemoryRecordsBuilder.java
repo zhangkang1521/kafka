@@ -415,6 +415,7 @@ public class MemoryRecordsBuilder implements AutoCloseable {
                 firstTimestamp = timestamp;
 
             if (magic > RecordBatch.MAGIC_VALUE_V1) {
+                // 版本2
                 appendDefaultRecord(offset, timestamp, key, value, headers);
                 return null;
             } else {
@@ -628,6 +629,7 @@ public class MemoryRecordsBuilder implements AutoCloseable {
         ensureOpenForRecordAppend();
         int offsetDelta = (int) (offset - baseOffset);
         long timestampDelta = timestamp - firstTimestamp;
+        //
         int sizeInBytes = DefaultRecord.writeTo(appendStream, offsetDelta, timestampDelta, key, value, headers);
         recordWritten(offset, timestamp, sizeInBytes);
     }

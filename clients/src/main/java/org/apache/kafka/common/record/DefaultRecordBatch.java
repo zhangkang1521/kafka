@@ -449,23 +449,24 @@ public class DefaultRecordBatch extends AbstractRecordBatch implements MutableRe
         if (firstTimestamp < 0 && firstTimestamp != NO_TIMESTAMP)
             throw new IllegalArgumentException("Invalid message timestamp " + firstTimestamp);
 
+        // 0-2 压缩类型，3 时间戳类型，4 事务型记录, 5 isControlBatch
         short attributes = computeAttributes(compressionType, timestampType, isTransactional, isControlBatch);
-
+		// 批量消息头部，61字节
         int position = buffer.position();
-        buffer.putLong(position + BASE_OFFSET_OFFSET, baseOffset);
-        buffer.putInt(position + LENGTH_OFFSET, sizeInBytes - LOG_OVERHEAD);
-        buffer.putInt(position + PARTITION_LEADER_EPOCH_OFFSET, partitionLeaderEpoch);
-        buffer.put(position + MAGIC_OFFSET, magic);
-        buffer.putShort(position + ATTRIBUTES_OFFSET, attributes);
-        buffer.putLong(position + FIRST_TIMESTAMP_OFFSET, firstTimestamp);
-        buffer.putLong(position + MAX_TIMESTAMP_OFFSET, maxTimestamp);
-        buffer.putInt(position + LAST_OFFSET_DELTA_OFFSET, lastOffsetDelta);
-        buffer.putLong(position + PRODUCER_ID_OFFSET, producerId);
-        buffer.putShort(position + PRODUCER_EPOCH_OFFSET, epoch);
-        buffer.putInt(position + BASE_SEQUENCE_OFFSET, sequence);
-        buffer.putInt(position + RECORDS_COUNT_OFFSET, numRecords);
+        buffer.putLong(position + BASE_OFFSET_OFFSET, baseOffset); // 偏移
+        buffer.putInt(position + LENGTH_OFFSET, sizeInBytes - LOG_OVERHEAD); // 消息体长度
+        buffer.putInt(position + PARTITION_LEADER_EPOCH_OFFSET, partitionLeaderEpoch); // 分区领导者纪元
+        buffer.put(position + MAGIC_OFFSET, magic); // 魔术值，版本2
+        buffer.putShort(position + ATTRIBUTES_OFFSET, attributes); // 属性值
+        buffer.putLong(position + FIRST_TIMESTAMP_OFFSET, firstTimestamp); // 第一条消息时间戳
+        buffer.putLong(position + MAX_TIMESTAMP_OFFSET, maxTimestamp); // 最后1条消息时间戳
+        buffer.putInt(position + LAST_OFFSET_DELTA_OFFSET, lastOffsetDelta); // 相对位移差值
+        buffer.putLong(position + PRODUCER_ID_OFFSET, producerId); // 生产者id
+        buffer.putShort(position + PRODUCER_EPOCH_OFFSET, epoch); // 生产者纪元
+        buffer.putInt(position + BASE_SEQUENCE_OFFSET, sequence); // 序号
+        buffer.putInt(position + RECORDS_COUNT_OFFSET, numRecords); // 记录数量
         long crc = Crc32C.compute(buffer, ATTRIBUTES_OFFSET, sizeInBytes - ATTRIBUTES_OFFSET);
-        buffer.putInt(position + CRC_OFFSET, (int) crc);
+        buffer.putInt(position + CRC_OFFSET, (int) crc); // 校验码
         buffer.position(position + RECORD_BATCH_OVERHEAD);
     }
 

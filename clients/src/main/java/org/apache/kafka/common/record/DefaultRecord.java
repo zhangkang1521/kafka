@@ -178,15 +178,20 @@ public class DefaultRecord implements Record {
                               ByteBuffer key,
                               ByteBuffer value,
                               Header[] headers) throws IOException {
+        // 消息体长度
         int sizeInBytes = sizeOfBodyInBytes(offsetDelta, timestampDelta, key, value, headers);
         ByteUtils.writeVarint(sizeInBytes, out);
 
+        // 属性
         byte attributes = 0; // there are no used record attributes at the moment
         out.write(attributes);
 
+        // 相对时间戳
         ByteUtils.writeVarlong(timestampDelta, out);
+        // 相对offset
         ByteUtils.writeVarint(offsetDelta, out);
 
+        // key
         if (key == null) {
             ByteUtils.writeVarint(-1, out);
         } else {
@@ -195,6 +200,7 @@ public class DefaultRecord implements Record {
             Utils.writeTo(out, key, keySize);
         }
 
+        // value
         if (value == null) {
             ByteUtils.writeVarint(-1, out);
         } else {
@@ -206,6 +212,7 @@ public class DefaultRecord implements Record {
         if (headers == null)
             throw new IllegalArgumentException("Headers cannot be null");
 
+        // 头部
         ByteUtils.writeVarint(headers.length, out);
 
         for (Header header : headers) {

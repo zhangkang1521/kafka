@@ -127,6 +127,7 @@ class TimeIndex(_file: File, baseOffset: Long, maxIndexSize: Int = -1, writable:
       // index will be empty.
       if (timestamp > lastEntry.timestamp) {
         debug("Adding index entry %d => %d to %s.".format(timestamp, offset, file.getName))
+        // 时间索引
         mmap.putLong(timestamp)
         mmap.putInt(relativeOffset(offset))
         _entries += 1
