@@ -44,6 +44,32 @@ import java.util.concurrent.CountDownLatch;
  */
 public final class WordCountDemo {
 
+    /**
+     * 创建输入topic
+     * ./kafka-topics.sh --create --topic streams-plaintext-input --replication-factor 1 --partitions 1 --zookeeper localhost:2181
+     *
+     * 创建输出topic
+     * ./kafka-topics.sh --create --topic streams-wordcount-output --replication-factor 1 --partitions 1 --zookeeper localhost:2181
+     *
+     * 运行Stream
+     * ./kafka-run-class.sh org.apache.kafka.streams.examples.wordcount.WordCountDemo
+     *
+     * 输入单词
+     * ./kafka-console-producer.sh --broker-list localhost:9092 --topic streams-plaintext-input
+     * >hello world
+     * >hello hello world
+     *
+     * 输出统计
+     * ./kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic streams-wordcount-output --from-beginning \
+     * --property print.key=true --property print.value=true \
+     * --property key.deserializer=org.apache.kafka.common.serialization.StringDeserializer \
+     * --property value.deserializer=org.apache.kafka.common.serialization.LongDeserializer
+     * >hello 1
+     * >world 1
+     * >hello 3
+     * >world 2
+     * @param args
+     */
     public static void main(final String[] args) {
         final Properties props = new Properties();
         props.put(StreamsConfig.APPLICATION_ID_CONFIG, "streams-wordcount");
