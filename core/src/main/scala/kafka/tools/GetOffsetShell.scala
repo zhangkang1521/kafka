@@ -29,6 +29,9 @@ import org.apache.kafka.common.serialization.ByteArrayDeserializer
 
 import scala.collection.JavaConverters._
 
+/**
+  * kafka-run-class.bat kafka.tools.GetOffsetShell --broker-list localhost:9092 --topic topic-b
+  */
 object GetOffsetShell {
 
   def main(args: Array[String]): Unit = {

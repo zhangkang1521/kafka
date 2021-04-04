@@ -34,6 +34,12 @@ import scala.collection.{Map, mutable}
 import scala.collection.mutable.ArrayBuffer
 import scala.collection.JavaConverters._
 
+/**
+  * kafka-dump-log.bat --files E:\github2\kafka-logs\topic-c-0\00000000000000000000.log
+  * 也可使用：kafka-run-class.bat kafka.tools.DumpLogSegments --files E:\github2\kafka-logs\topic-a-0\00000000000000000000.log
+  * 批量遍历 --deep-iteration
+  * 打印消息内容 --print-data-log
+  */
 object DumpLogSegments {
 
   // visible for testing
